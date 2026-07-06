@@ -38,11 +38,15 @@ function getShiftType(dateStr) {
   // 2. Check built-in holidays
   const holidays = getHolidays();
   if (holidays[dateStr]) {
-    const type = holidays[dateStr];
-    const info = SHIFT_TYPES[type] || { label: type, category: 'unknown' };
+    const holidayData = holidays[dateStr];
+    // Support both old format (string type) and new format ({ type, name })
+    const holidayEntry = typeof holidayData === 'string'
+      ? { type: holidayData, name: SHIFT_TYPES[holidayData]?.label || holidayData }
+      : holidayData;
+    const info = SHIFT_TYPES[holidayEntry.type] || { label: holidayEntry.type, category: 'unknown' };
     return {
-      type,
-      label: info.label,
+      type: holidayEntry.type,
+      label: holidayEntry.name || info.label,
       category: info.category,
       source: 'holiday',
       cycleDay: null,

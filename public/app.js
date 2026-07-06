@@ -265,14 +265,27 @@ function renderDayCell(day, dateStr, shift, isOtherMonth, today, planDates) {
   if (shift?.type) classes.push('shift-' + shift.type);
   if (dateStr === today) classes.push('today');
 
-  const label = SHIFT_LABELS[shift?.type] || '';
+  // Holiday names get special treatment
+  const isHoliday = shift?.type === 'holiday';
+  const holidayName = isHoliday ? (shift?.label || '') : '';
+  const shiftLabel = !isHoliday ? (SHIFT_LABELS[shift?.type] || '') : '';
+
+  const datePlans = plans.filter(p => p.deadline.slice(0, 10) === dateStr);
+  const planDotsHtml = datePlans.slice(0, 3).map(() =>
+    '<span class="plan-dot"></span>'
+  ).join('');
+
   const hasPlan = planDates.has(dateStr);
 
   return `
     <div class="${classes.join(' ')}" data-date="${dateStr}" onclick="onDayClick('${dateStr}', event)">
-      <span class="day-num">${day}</span>
-      <span class="shift-label">${label}</span>
-      ${hasPlan ? '<span class="plan-dot"></span>' : ''}
+      <div>
+        <span class="day-num">${day}</span>
+        ${shift?.type ? `<span class="shift-indicator"></span>` : ''}
+      </div>
+      ${holidayName ? `<span class="holiday-name">${holidayName}</span>` : ''}
+      ${shiftLabel ? `<span class="shift-label">${shiftLabel}</span>` : ''}
+      ${hasPlan ? `<div class="plan-dots">${planDotsHtml}</div>` : ''}
     </div>
   `;
 }
@@ -300,7 +313,7 @@ function onDayClick(dateStr, event) {
 function showDateDetail(dateStr) {
   currentDateDetail = dateStr;
   const shift = shiftCache[dateStr];
-  const info = SHIFT_LABELS[shift?.type] || '未知';
+  const info = shift?.label || SHIFT_LABELS[shift?.type] || '未知';
   const source = shift?.source === 'override' ? '手动设置' :
     shift?.source === 'holiday' ? '法定节假日' :
     shift?.source === 'cycle' ? '自动推算' : '未设置';
@@ -358,7 +371,7 @@ async function deleteShiftOverride() {
 
 function showPlanDetail(dateStr, datePlans) {
   const shift = shiftCache[dateStr];
-  const shiftText = SHIFT_LABELS[shift?.type] || '';
+  const shiftText = shift?.label || SHIFT_LABELS[shift?.type] || '';
   const modal = document.getElementById('planDetailModal');
 
   document.getElementById('detailTitle').textContent = `${dateStr} ${shiftText}`;

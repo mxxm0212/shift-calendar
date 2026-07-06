@@ -22,7 +22,7 @@ async function init() {
   const now = new Date();
   currentYear = now.getFullYear();
   currentMonth = now.getMonth() + 1;
-  selectedDate = now.toISOString().slice(0, 10);
+  selectedDate = localDateStr(now);
 
   await Promise.all([loadConfig(), loadPlans(), renderCalendar()]);
   bindEvents();
@@ -199,8 +199,8 @@ async function renderCalendar() {
   // Fetch shift types for visible range
   const firstVisibleDate = new Date(year, month - 2, daysInPrevMonth - startDayOfWeek + 1);
   const lastVisibleDate = new Date(year, month, 42 - startDayOfWeek - daysInMonth);
-  const startStr = firstVisibleDate.toISOString().slice(0, 10);
-  const endStr = lastVisibleDate.toISOString().slice(0, 10);
+  const startStr = localDateStr(firstVisibleDate);
+  const endStr = localDateStr(lastVisibleDate);
 
   try {
     const rangeShifts = await api(`/api/shift-range?start=${startStr}&end=${endStr}`);
@@ -209,7 +209,7 @@ async function renderCalendar() {
     console.error('Failed to load shift types:', err);
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateStr(new Date());
   const planDates = new Set(plans.map(p => p.deadline.slice(0, 10)));
 
   let html = '';
@@ -219,7 +219,7 @@ async function renderCalendar() {
   for (let i = startDayOfWeek - 1; i >= 0; i--) {
     const day = daysInPrevMonth - i;
     const d = new Date(year, month - 2, day);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = localDateStr(d);
     const shift = shiftCache[dateStr];
     html += renderDayCell(day, dateStr, shift, true, today, planDates);
     dayCount++;
@@ -228,7 +228,7 @@ async function renderCalendar() {
   // Current month
   for (let day = 1; day <= daysInMonth; day++) {
     const d = new Date(year, month - 1, day);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = localDateStr(d);
     const shift = shiftCache[dateStr];
     html += renderDayCell(day, dateStr, shift, false, today, planDates);
     dayCount++;
@@ -238,7 +238,7 @@ async function renderCalendar() {
   const remaining = (7 - (dayCount % 7)) % 7;
   for (let day = 1; day <= remaining; day++) {
     const d = new Date(year, month, day);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = localDateStr(d);
     const shift = shiftCache[dateStr];
     html += renderDayCell(day, dateStr, shift, true, today, planDates);
   }
@@ -343,7 +343,7 @@ function goToday() {
   const now = new Date();
   currentYear = now.getFullYear();
   currentMonth = now.getMonth() + 1;
-  selectedDate = now.toISOString().slice(0, 10);
+  selectedDate = localDateStr(now);
   renderCalendar();
 }
 
@@ -409,6 +409,14 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// Get YYYY-MM-DD string in local timezone
+function localDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 // === Boot ===

@@ -1,8 +1,16 @@
 // === State ===
 let currentYear, currentMonth;
 let selectedDate = null;
+let currentDateDetail = null;
 let plans = [];
 let shiftCache = {};
+let shiftTypes = {}; // Shift type metadata from API
+
+// Shift type labels
+const SHIFT_LABELS = {
+  day: '白班', night: '夜班', trip: '出差',
+  rest: '休息', holiday: '节假日', unknown: '未知',
+};
 
 // === API Helpers ===
 async function api(path, options = {}) {
@@ -28,7 +36,12 @@ async function init() {
   bindEvents();
 
   // Mobile: close sidebar when clicking overlay
-  document.getElementById('overlay').addEventListener('click', closeSidebar);
+  document.getElementById('overlay').addEventListener('click', () => {
+    closeSidebar();
+    hideModal('settingsModal');
+    hideModal('planDetailModal');
+    hideModal('dateDetailModal');
+  });
 }
 
 // === Config ===
@@ -89,7 +102,7 @@ function renderPlanList() {
     const dateStr = deadline.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
     const isOverdue = deadline < new Date();
     const shiftInfo = shiftCache[p.deadline.slice(0, 10)];
-    const shiftClass = shiftInfo?.type === 'rest' ? 'rest-plan' : 'work-plan';
+    const shiftClass = 'plan-' + (shiftInfo?.type || 'unknown');
 
     return `
       <div class="plan-card ${shiftClass}" onclick="editPlan('${p.id}')">
@@ -249,51 +262,103 @@ async function renderCalendar() {
 function renderDayCell(day, dateStr, shift, isOtherMonth, today, planDates) {
   let classes = ['calendar-day'];
   if (isOtherMonth) classes.push('other-month');
-  if (shift?.type === 'work') classes.push('work-day');
-  if (shift?.type === 'rest') classes.push('rest-day');
+  if (shift?.type) classes.push('shift-' + shift.type);
   if (dateStr === today) classes.push('today');
 
-  const shiftLabel = shift?.type === 'work' ? '班' : shift?.type === 'rest' ? '休' : '';
+  const label = SHIFT_LABELS[shift?.type] || '';
   const hasPlan = planDates.has(dateStr);
 
   return `
-    <div class="${classes.join(' ')}" data-date="${dateStr}" onclick="onDayClick('${dateStr}')">
+    <div class="${classes.join(' ')}" data-date="${dateStr}" onclick="onDayClick('${dateStr}', event)">
       <span class="day-num">${day}</span>
-      <span class="shift-label">${shiftLabel}</span>
+      <span class="shift-label">${label}</span>
       ${hasPlan ? '<span class="plan-dot"></span>' : ''}
     </div>
   `;
 }
 
-function onDayClick(dateStr) {
+function onDayClick(dateStr, event) {
   selectedDate = dateStr;
+
+  // Right-click or mobile: show date detail modal
+  if ((event && event.type === 'contextmenu') || window.innerWidth <= 768) {
+    event?.preventDefault();
+    showDateDetail(dateStr);
+    return;
+  }
+
+  // Desktop left-click: populate form, also show date detail
+  resetForm();
+  document.getElementById('planDeadline').value = `${dateStr}T18:00`;
+
+  document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
+  const cell = document.querySelector(`[data-date="${dateStr}"]`);
+  if (cell) cell.classList.add('selected');
+}
+
+// === Date Detail Modal (change shift type) ===
+function showDateDetail(dateStr) {
+  currentDateDetail = dateStr;
+  const shift = shiftCache[dateStr];
+  const info = SHIFT_LABELS[shift?.type] || '未知';
+  const source = shift?.source === 'override' ? '手动设置' :
+    shift?.source === 'holiday' ? '法定节假日' :
+    shift?.source === 'cycle' ? '自动推算' : '未设置';
+
+  document.getElementById('dateDetailTitle').textContent = `${dateStr} 详情`;
+  document.getElementById('currentShiftInfo').innerHTML =
+    `<span class="shift-badge shift-${shift?.type || 'unknown'}">${info}</span> <small>(${source})</small>`;
+  document.getElementById('shiftTypeSelect').value = '';
+
+  // Show plans for this day in the modal
   const datePlans = plans.filter(p => p.deadline.slice(0, 10) === dateStr);
+  let plansHtml = datePlans.map(p => {
+    const d = new Date(p.deadline);
+    const t = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Shanghai' });
+    return `<div class="plan-card" style="margin-bottom:4px;">${escapeHtml(p.title)} ⏰${t}</div>`;
+  }).join('');
+  if (!plansHtml) plansHtml = '<p style="color:#999;font-size:0.85rem;">当天没有计划</p>';
+  document.getElementById('datePlansInModal').innerHTML = plansHtml;
 
-  if (window.innerWidth <= 768) {
-    // Mobile: show plan detail or quick-add
-    if (datePlans.length > 0) {
-      showPlanDetail(dateStr, datePlans);
+  showModal('dateDetailModal');
+}
+
+async function saveShiftOverride() {
+  const type = document.getElementById('shiftTypeSelect').value;
+  if (!currentDateDetail) return;
+
+  try {
+    if (type === '') {
+      await api(`/api/overrides?date=${currentDateDetail}`, { method: 'DELETE' });
     } else {
-      openSidebar();
-      resetForm();
-      document.getElementById('planDeadline').value = `${dateStr}T18:00`;
-      document.getElementById('planForm').scrollIntoView({ behavior: 'smooth' });
+      await api('/api/overrides', {
+        method: 'PUT',
+        body: JSON.stringify({ date: currentDateDetail, type }),
+      });
     }
-  } else {
-    // Desktop: populate form with selected date
-    resetForm();
-    document.getElementById('planDeadline').value = `${dateStr}T18:00`;
+    hideModal('dateDetailModal');
+    shiftCache = {};
+    await renderCalendar();
+  } catch (err) {
+    alert('修改失败：' + err.message);
+  }
+}
 
-    // Highlight selected date
-    document.querySelectorAll('.calendar-day.selected').forEach(el => el.classList.remove('selected'));
-    const cell = document.querySelector(`[data-date="${dateStr}"]`);
-    if (cell) cell.classList.add('selected');
+async function deleteShiftOverride() {
+  if (!currentDateDetail) return;
+  try {
+    await api(`/api/overrides?date=${currentDateDetail}`, { method: 'DELETE' });
+    hideModal('dateDetailModal');
+    shiftCache = {};
+    await renderCalendar();
+  } catch (err) {
+    alert('恢复失败：' + err.message);
   }
 }
 
 function showPlanDetail(dateStr, datePlans) {
   const shift = shiftCache[dateStr];
-  const shiftText = shift?.type === 'work' ? '工作日' : shift?.type === 'rest' ? '休息日' : '';
+  const shiftText = SHIFT_LABELS[shift?.type] || '';
   const modal = document.getElementById('planDetailModal');
 
   document.getElementById('detailTitle').textContent = `${dateStr} ${shiftText}`;
@@ -392,6 +457,18 @@ function bindEvents() {
   document.getElementById('detailClose').addEventListener('click', () => hideModal('planDetailModal'));
   document.getElementById('btnSaveSettings').addEventListener('click', saveSettings);
 
+  document.getElementById('dateDetailClose').addEventListener('click', () => hideModal('dateDetailModal'));
+  document.getElementById('btnSaveShift').addEventListener('click', saveShiftOverride);
+  document.getElementById('btnDeleteOverride').addEventListener('click', deleteShiftOverride);
+
+  // Right-click on calendar grid for date detail
+  document.getElementById('calendarGrid').addEventListener('contextmenu', (e) => {
+    const cell = e.target.closest('.calendar-day');
+    if (cell) {
+      onDayClick(cell.dataset.date, e);
+    }
+  });
+
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft' && !e.target.closest('input, textarea, select')) changeMonth(-1);
@@ -400,6 +477,7 @@ function bindEvents() {
       closeSidebar();
       hideModal('settingsModal');
       hideModal('planDetailModal');
+      hideModal('dateDetailModal');
     }
   });
 }

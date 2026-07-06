@@ -3,7 +3,7 @@ const cron = require('node-cron');
 const path = require('path');
 const crypto = require('crypto');
 const db = require('./db');
-const { getShiftType, getShiftTypesInRange } = require('./shift');
+const { getShiftType, getShiftTypesInRange, SHIFT_TYPES } = require('./shift');
 const { checkAndNotify } = require('./notify');
 
 const app = express();
@@ -102,6 +102,38 @@ app.get('/api/shift-range', (req, res) => {
     return res.status(400).json({ error: '请提供 start 和 end 参数 (YYYY-MM-DD)' });
   }
   const result = getShiftTypesInRange(start, end);
+  res.json(result);
+});
+
+// --- Shift Types metadata ---
+app.get('/api/shift-types', (req, res) => {
+  res.json(SHIFT_TYPES);
+});
+
+// --- Overrides API ---
+
+app.get('/api/overrides', (req, res) => {
+  res.json(db.getAllOverrides());
+});
+
+app.put('/api/overrides', (req, res) => {
+  const { date, type } = req.body;
+  if (!date) {
+    return res.status(400).json({ error: '请提供 date' });
+  }
+  if (!type || !SHIFT_TYPES[type]) {
+    return res.status(400).json({ error: `无效的班型，可选值: ${Object.keys(SHIFT_TYPES).join(', ')}` });
+  }
+  const result = db.setOverride(date, type);
+  res.json(result);
+});
+
+app.delete('/api/overrides', (req, res) => {
+  const { date } = req.query;
+  if (!date) {
+    return res.status(400).json({ error: '请提供 date 参数' });
+  }
+  const result = db.deleteOverride(date);
   res.json(result);
 });
 

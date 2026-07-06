@@ -4,6 +4,7 @@ const path = require('path');
 const DATA_DIR = path.join(__dirname, '..', 'data');
 const CONFIG_FILE = path.join(DATA_DIR, 'config.json');
 const PLANS_FILE = path.join(DATA_DIR, 'plans.json');
+const OVERRIDES_FILE = path.join(DATA_DIR, 'overrides.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -125,6 +126,38 @@ function getPlansNeedingNotification() {
   });
 }
 
+// --- Day overrides (manual shift type assignment) ---
+
+function loadOverrides() {
+  return readJSON(OVERRIDES_FILE, {});
+}
+
+function saveOverrides(data) {
+  writeJSON(OVERRIDES_FILE, data);
+}
+
+function getAllOverrides() {
+  return loadOverrides();
+}
+
+function getOverrides() {
+  return loadOverrides();
+}
+
+function setOverride(date, type) {
+  const overrides = loadOverrides();
+  overrides[date] = type;
+  saveOverrides(overrides);
+  return { date, type };
+}
+
+function deleteOverride(date) {
+  const overrides = loadOverrides();
+  delete overrides[date];
+  saveOverrides(overrides);
+  return { date };
+}
+
 module.exports = {
   getConfig,
   setConfig,
@@ -135,4 +168,8 @@ module.exports = {
   updatePlan,
   deletePlan,
   getPlansNeedingNotification,
+  getOverrides,
+  setOverride,
+  deleteOverride,
+  getAllOverrides,
 };

@@ -17,15 +17,12 @@
 
       <!-- 图例 -->
       <div class="legend">
-        <div class="legend-item">
-          <span class="legend-dot work"></span> 工作日
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot rest"></span> 休息日
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot today-dot"></span> 今天
-        </div>
+        <div class="legend-item"><span class="legend-dot day"></span> 白班</div>
+        <div class="legend-item"><span class="legend-dot night"></span> 夜班</div>
+        <div class="legend-item"><span class="legend-dot trip"></span> 出差</div>
+        <div class="legend-item"><span class="legend-dot rest"></span> 休息</div>
+        <div class="legend-item"><span class="legend-dot holiday"></span> 节假日</div>
+        <div class="legend-item"><span class="legend-dot today-dot"></span> 今天</div>
       </div>
 
       <!-- 计划表单 -->
@@ -132,6 +129,37 @@
     </div>
     <div class="modal-body" id="detailBody">
       <!-- JS 动态填充 -->
+    </div>
+  </div>
+
+  <!-- 日期详情弹窗（修改单日班型） -->
+  <div class="modal" id="dateDetailModal">
+    <div class="modal-header">
+      <h3 id="dateDetailTitle">日期详情</h3>
+      <button class="btn-icon modal-close" id="dateDetailClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>当前班型</label>
+        <p id="currentShiftInfo" style="font-size:1.1rem;font-weight:600;"></p>
+      </div>
+      <div class="form-group">
+        <label for="shiftTypeSelect">修改班型</label>
+        <select id="shiftTypeSelect">
+          <option value="">恢复自动推算</option>
+          <option value="day">🌞 白班</option>
+          <option value="night">🌙 夜班</option>
+          <option value="trip">✈️ 出差</option>
+          <option value="rest">🏠 休息</option>
+          <option value="holiday">🎉 节假日</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="btnSaveShift" style="width:100%;">保存</button>
+      <button class="btn btn-secondary" id="btnDeleteOverride" style="width:100%;margin-top:6px;">恢复自动推算</button>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--color-border);">
+        <h4 style="margin-bottom:6px;">📋 当天计划</h4>
+        <div id="datePlansInModal"></div>
+      </div>
     </div>
   </div>
 

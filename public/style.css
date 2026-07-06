@@ -6,10 +6,18 @@
 }
 
 :root {
-  --color-work: #4A90D9;
-  --color-work-light: #D6E8FB;
+  --color-day: #4A90D9;
+  --color-day-light: #D6E8FB;
+  --color-night: #2C3E8C;
+  --color-night-light: #D0D6F0;
+  --color-trip: #E67E22;
+  --color-trip-light: #FDEBD0;
   --color-rest: #5BAF5B;
   --color-rest-light: #DCF5DC;
+  --color-holiday: #E74C3C;
+  --color-holiday-light: #FADBD8;
+  --color-unknown: #B0B0B0;
+  --color-unknown-light: #E8E8E8;
   --color-today: #FF6B35;
   --color-bg: #F5F6FA;
   --color-surface: #FFFFFF;
@@ -90,9 +98,28 @@ body {
   display: inline-block;
 }
 
-.legend-dot.work { background: var(--color-work-light); border: 2px solid var(--color-work); }
+.legend-dot.day { background: var(--color-day-light); border: 2px solid var(--color-day); }
+.legend-dot.night { background: var(--color-night-light); border: 2px solid var(--color-night); }
+.legend-dot.trip { background: var(--color-trip-light); border: 2px solid var(--color-trip); }
 .legend-dot.rest { background: var(--color-rest-light); border: 2px solid var(--color-rest); }
+.legend-dot.holiday { background: var(--color-holiday-light); border: 2px solid var(--color-holiday); }
 .legend-dot.today-dot { background: var(--color-today); }
+
+/* === Shift badge (in modals) === */
+.shift-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.shift-badge.shift-day { background: var(--color-day-light); color: var(--color-day); }
+.shift-badge.shift-night { background: var(--color-night-light); color: var(--color-night); }
+.shift-badge.shift-trip { background: var(--color-trip-light); color: var(--color-trip); }
+.shift-badge.shift-rest { background: var(--color-rest-light); color: var(--color-rest); }
+.shift-badge.shift-holiday { background: var(--color-holiday-light); color: var(--color-holiday); }
+.shift-badge.shift-unknown { background: var(--color-unknown-light); color: #888; }
 
 /* === Form === */
 .plan-form {
@@ -246,8 +273,11 @@ body {
   background: #EBF0F6;
 }
 
-.plan-card.work-plan { border-left-color: var(--color-work); }
-.plan-card.rest-plan { border-left-color: var(--color-rest); }
+.plan-card.plan-day { border-left-color: var(--color-day); }
+.plan-card.plan-night { border-left-color: var(--color-night); }
+.plan-card.plan-trip { border-left-color: var(--color-trip); }
+.plan-card.plan-rest { border-left-color: var(--color-rest); }
+.plan-card.plan-holiday { border-left-color: var(--color-holiday); }
 
 .plan-card-content {
   flex: 1;
@@ -379,15 +409,12 @@ body {
   cursor: default;
 }
 
-.calendar-day.work-day {
-  background: var(--color-work-light);
-  border-color: var(--color-work-light);
-}
-
-.calendar-day.rest-day {
-  background: var(--color-rest-light);
-  border-color: var(--color-rest-light);
-}
+.calendar-day.shift-day { background: var(--color-day-light); border-color: var(--color-day-light); }
+.calendar-day.shift-night { background: var(--color-night-light); border-color: var(--color-night-light); }
+.calendar-day.shift-trip { background: var(--color-trip-light); border-color: var(--color-trip-light); }
+.calendar-day.shift-rest { background: var(--color-rest-light); border-color: var(--color-rest-light); }
+.calendar-day.shift-holiday { background: var(--color-holiday-light); border-color: var(--color-holiday-light); }
+.calendar-day.shift-unknown { background: var(--color-unknown-light); border-color: var(--color-unknown-light); }
 
 .calendar-day.today {
   border: 2px solid var(--color-today) !important;
@@ -405,8 +432,11 @@ body {
   margin-top: 2px;
 }
 
-.calendar-day.work-day .shift-label { color: var(--color-work); }
-.calendar-day.rest-day .shift-label { color: var(--color-rest); }
+.calendar-day.shift-day .shift-label { color: var(--color-day); }
+.calendar-day.shift-night .shift-label { color: var(--color-night); }
+.calendar-day.shift-trip .shift-label { color: var(--color-trip); }
+.calendar-day.shift-rest .shift-label { color: var(--color-rest); }
+.calendar-day.shift-holiday .shift-label { color: var(--color-holiday); }
 
 .calendar-day .plan-dot {
   width: 6px;
@@ -548,8 +578,12 @@ body {
     --color-text: #E0E0E0;
     --color-text-secondary: #A0A0B0;
     --color-border: #3A3A4C;
-    --color-work-light: #1E3050;
+    --color-day-light: #1E3050;
+    --color-night-light: #1A1F3A;
+    --color-trip-light: #3D2E1E;
     --color-rest-light: #1E4028;
+    --color-holiday-light: #3D1E1E;
+    --color-unknown-light: #2A2A2A;
   }
 
   .btn-secondary { background: #3A3A4C; color: #DDD; }

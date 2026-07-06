@@ -1,0 +1,15 @@
+{
+  "name": "shift-calendar",
+  "version": "1.0.0",
+  "description": "排班日历 + 飞书提醒应用",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "express": "^4.19.0",
+    "node-cron": "^3.0.3"
+  }
+}

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>排班日历</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h1 class="app-title">📅 排班日历</h1>
+        <button class="btn-icon sidebar-toggle" id="sidebarClose" title="关闭侧边栏">✕</button>
+      </div>
+
+      <!-- 图例 -->
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-dot work"></span> 工作日
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot rest"></span> 休息日
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot today-dot"></span> 今天
+        </div>
+      </div>
+
+      <!-- 计划表单 -->
+      <div class="plan-form" id="planForm">
+        <h3 id="formTitle">新建计划</h3>
+        <input type="hidden" id="planId">
+        <div class="form-group">
+          <label for="planTitle">计划标题 *</label>
+          <input type="text" id="planTitle" placeholder="例如：提交工作报告">
+        </div>
+        <div class="form-group">
+          <label for="planDesc">备注</label>
+          <textarea id="planDesc" rows="2" placeholder="可选"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="planDeadline">截止时间 *</label>
+          <input type="datetime-local" id="planDeadline">
+        </div>
+        <div class="form-group">
+          <label for="planReminder">提前提醒</label>
+          <select id="planReminder">
+            <option value="5">5 分钟</option>
+            <option value="15">15 分钟</option>
+            <option value="30" selected>30 分钟</option>
+            <option value="60">1 小时</option>
+            <option value="120">2 小时</option>
+            <option value="1440">1 天</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="btnSave">保存</button>
+          <button class="btn btn-secondary" id="btnCancel">取消</button>
+        </div>
+      </div>
+
+      <!-- 计划列表 -->
+      <div class="plan-list-section">
+        <h3>📋 计划列表</h3>
+        <div class="plan-list" id="planList">
+          <p class="empty-hint">暂无计划，点击日历日期创建</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 主日历区 -->
+    <main class="main-content">
+      <div class="calendar-header">
+        <button class="btn-icon menu-btn" id="menuBtn" title="菜单">☰</button>
+        <div class="month-nav">
+          <button class="btn-icon" id="prevMonth">◀</button>
+          <h2 id="monthYear">2026年7月</h2>
+          <button class="btn-icon" id="nextMonth">▶</button>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-small" id="btnToday">今天</button>
+          <button class="btn btn-small btn-setting" id="btnSettings">⚙️ 设置</button>
+        </div>
+      </div>
+
+      <!-- 星期头 -->
+      <div class="weekdays">
+        <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div>
+      </div>
+
+      <!-- 日历格子 -->
+      <div class="calendar-grid" id="calendarGrid">
+        <!-- JS 动态渲染 -->
+      </div>
+
+      <!-- 移动端：底部新建按钮 -->
+      <button class="fab" id="fabAdd" title="新建计划">＋</button>
+    </main>
+  </div>
+
+  <!-- 遮罩 -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- 设置弹窗 -->
+  <div class="modal" id="settingsModal">
+    <div class="modal-header">
+      <h3>⚙️ 设置</h3>
+      <button class="btn-icon modal-close" id="settingsClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="refDate">排班参考起始日（必须是周一）</label>
+        <input type="date" id="refDate">
+        <small>设定你某个进班的周一，系统会以此为基准推算所有日期的排班状态。</small>
+      </div>
+      <div class="form-group">
+        <label for="webhookUrl">飞书机器人 Webhook URL</label>
+        <input type="url" id="webhookUrl" placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/...">
+        <small>计划到期时通过飞书机器人推送提醒到你手机。</small>
+      </div>
+      <button class="btn btn-primary" id="btnSaveSettings">保存设置</button>
+    </div>
+  </div>
+
+  <!-- 计划详情弹窗（移动端） -->
+  <div class="modal" id="planDetailModal">
+    <div class="modal-header">
+      <h3 id="detailTitle">计划详情</h3>
+      <button class="btn-icon modal-close" id="detailClose">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody">
+      <!-- JS 动态填充 -->
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

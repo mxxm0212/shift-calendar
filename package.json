@@ -1,0 +1,13 @@
+{
+  "name": "shift-calendar",
+  "version": "1.0.0",
+  "description": "排班日历 + 飞书提醒",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "postinstall": "cd server && npm install"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

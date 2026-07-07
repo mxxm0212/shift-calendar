@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = process.env.SHIFT_CALENDAR_DATA || path.join(__dirname, '..', 'data');
 const CONFIG_FILE = path.join(DATA_DIR, 'config.json');
 const PLANS_FILE = path.join(DATA_DIR, 'plans.json');
 const OVERRIDES_FILE = path.join(DATA_DIR, 'overrides.json');

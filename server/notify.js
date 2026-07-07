@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getConfig, updatePlan } = require('./db');
+const { getConfig, updatePlan, getPlansNeedingNotification } = require('./db');
 
 /**
  * Send a Feishu (Lark) bot notification for a plan reminder.
@@ -71,15 +71,23 @@ async function sendFeishuNotification(plan) {
 /**
  * Check all plans and send notifications for ones that need it.
  */
-async function checkAndNotify() {
-  const { getPlansNeedingNotification } = require('./db');
-  const plans = getPlansNeedingNotification();
+// Mutex to prevent concurrent notification runs
+let notifying = false;
 
-  for (const plan of plans) {
-    const sent = await sendFeishuNotification(plan);
-    if (sent) {
-      updatePlan(plan.id, { notified: 1 });
+async function checkAndNotify() {
+  if (notifying) return;
+  notifying = true;
+  try {
+    const plans = getPlansNeedingNotification();
+
+    for (const plan of plans) {
+      const sent = await sendFeishuNotification(plan);
+      if (sent) {
+        updatePlan(plan.id, { notified: 1 });
+      }
     }
+  } finally {
+    notifying = false;
   }
 }
 

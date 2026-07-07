@@ -8,93 +8,179 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- 侧边栏 -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <h1 class="app-title">📅 排班日历</h1>
-        <button class="btn-icon sidebar-toggle" id="sidebarClose" title="关闭侧边栏">✕</button>
+    <!-- 左侧面板：日历导航 + 计划列表 -->
+    <aside class="left-panel" id="leftPanel">
+      <!-- 月份导航 -->
+      <div class="cal-nav">
+        <button class="btn-icon" id="prevMonth">◀</button>
+        <span class="cal-nav-title" id="monthYear">2026年7月</span>
+        <button class="btn-icon" id="nextMonth">▶</button>
+      </div>
+
+      <!-- 紧凑日历 -->
+      <div class="mini-weekdays">
+        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+      </div>
+      <div class="mini-calendar" id="miniCalendar">
+        <!-- JS 渲染 -->
       </div>
 
       <!-- 图例 -->
-      <div class="legend">
-        <div class="legend-item"><span class="legend-dot day"></span> 白班</div>
-        <div class="legend-item"><span class="legend-dot night"></span> 夜班</div>
-        <div class="legend-item"><span class="legend-dot trip"></span> 出差</div>
-        <div class="legend-item"><span class="legend-dot rest"></span> 休息</div>
-        <div class="legend-item"><span class="legend-dot holiday"></span> 节假日</div>
-        <div class="legend-item"><span class="legend-dot today-dot"></span> 今天</div>
+      <div class="mini-legend" id="legendBox">
+        <span class="legend-dot start"></span>进班
+        <span class="legend-dot day"></span>白班
+        <span class="legend-dot end"></span>出班
+        <span class="legend-dot rest"></span>休息
+        <span class="legend-dot holiday"></span>节假日
       </div>
 
-      <!-- 计划表单 -->
-      <div class="plan-form" id="planForm">
-        <h3 id="formTitle">新建计划</h3>
-        <input type="hidden" id="planId">
-        <div class="form-group">
-          <label for="planTitle">计划标题 *</label>
-          <input type="text" id="planTitle" placeholder="例如：提交工作报告">
-        </div>
-        <div class="form-group">
-          <label for="planDesc">备注</label>
-          <textarea id="planDesc" rows="2" placeholder="可选"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="planDeadline">截止时间 *</label>
-          <input type="datetime-local" id="planDeadline">
-        </div>
-        <div class="form-group">
-          <label for="planReminder">提前提醒</label>
-          <select id="planReminder">
-            <option value="5">5 分钟</option>
-            <option value="15">15 分钟</option>
-            <option value="30" selected>30 分钟</option>
-            <option value="60">1 小时</option>
-            <option value="120">2 小时</option>
-            <option value="1440">1 天</option>
-          </select>
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-primary" id="btnSave">保存</button>
-          <button class="btn btn-secondary" id="btnCancel">取消</button>
-        </div>
+      <!-- 按钮行 -->
+      <div class="left-actions">
+        <button class="btn btn-small" id="btnToday">今天</button>
+        <button class="btn btn-small btn-setting" id="btnSettings">⚙️ 设置</button>
       </div>
 
-      <!-- 计划列表 -->
-      <div class="plan-list-section">
-        <h3>📋 计划列表</h3>
-        <div class="plan-list" id="planList">
-          <p class="empty-hint">暂无计划，点击日历日期创建</p>
+      <!-- 分隔线 -->
+      <div class="section-divider" id="widgetZoneDivider"></div>
+
+      <!-- 万年历 -->
+      <div class="year-calendar" id="yearCalendar">
+        <!-- JS 动态渲染全年 12 个月 -->
+      </div>
+
+      <!-- 老黄历 -->
+      <div class="lunar-card" id="lunarCard">
+        <div class="lunar-header">📅 老黄历</div>
+        <div class="lunar-body" id="lunarBody">
+          <p class="lunar-date">—</p>
+          <p class="lunar-stem">—</p>
         </div>
       </div>
     </aside>
 
-    <!-- 主日历区 -->
-    <main class="main-content">
-      <div class="calendar-header">
-        <button class="btn-icon menu-btn" id="menuBtn" title="菜单">☰</button>
-        <div class="month-nav">
-          <button class="btn-icon" id="prevMonth">◀</button>
-          <h2 id="monthYear">2026年7月</h2>
-          <button class="btn-icon" id="nextMonth">▶</button>
+    <!-- 右侧详情面板 -->
+    <main class="right-panel" id="rightPanel">
+      <!-- 日期标题 -->
+      <div class="detail-header">
+        <div class="detail-date-title">
+          <h2 id="detailDate">7月7日 周一</h2>
+          <span class="shift-badge shift-unknown" id="detailShiftBadge">白班</span>
         </div>
-        <div class="header-actions">
-          <button class="btn btn-small" id="btnToday">今天</button>
-          <button class="btn btn-small btn-setting" id="btnSettings">⚙️ 设置</button>
+        <div class="detail-shift-actions">
+          <select id="detailShiftSelect" class="shift-select">
+            <option value="">自动推算</option>
+            <option value="start">🚪 进班</option>
+            <option value="day">🌞 白班</option>
+            <option value="end">🏁 出班</option>
+            <option value="night">🌙 夜班</option>
+            <option value="trip">✈️ 出差</option>
+            <option value="holiday_overtime">🔥 节假日加班</option>
+            <option value="rest">🏠 休息</option>
+            <option value="holiday">🎉 节假日</option>
+          </select>
+          <button class="btn-icon" id="btnEditLayout" title="自定义布局">✏️</button>
         </div>
       </div>
 
-      <!-- 星期头 -->
-      <div class="weekdays">
-        <div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div><div>日</div>
-      </div>
+      <!-- 卡片容器（双栏 Grid） -->
+      <div class="cards-grid">
 
-      <!-- 日历格子 -->
-      <div class="calendar-grid" id="calendarGrid">
-        <!-- JS 动态渲染 -->
-      </div>
+        <!-- 今日概览 -->
+        <div class="card" id="overviewCard">
+          <div class="card-header">
+            <h3>📊 今日概览</h3>
+          </div>
+          <div class="card-body">
+            <div class="overview-grid" id="overviewGrid">
+              <!-- JS 动态渲染 -->
+            </div>
+          </div>
+        </div>
 
-      <!-- 移动端：底部新建按钮 -->
-      <button class="fab" id="fabAdd" title="新建计划">＋</button>
+        <!-- 班型周期 -->
+        <div class="card" id="cycleCard">
+          <div class="card-header">
+            <h3>🔄 班型周期</h3>
+          </div>
+          <div class="card-body">
+            <div class="cycle-bar" id="cycleBar">
+              <!-- JS 动态渲染：14 格进度条 -->
+            </div>
+            <p class="cycle-label" id="cycleLabel"></p>
+          </div>
+        </div>
+
+        <!-- 工作日志（全宽） -->
+        <div class="card card-full" id="worklogCard">
+          <div class="card-header">
+            <h3>📝 工作日志</h3>
+          </div>
+          <div class="card-body">
+            <div class="worklog-rows" id="worklogRows">
+              <!-- JS 动态渲染 -->
+            </div>
+            <div class="worklog-actions">
+              <small id="worklogUpdated"></small>
+              <div style="display:flex;gap:8px;">
+                <button class="btn btn-small btn-secondary" id="btnAddWorklogRow">＋ 添加一行</button>
+                <button class="btn btn-primary" id="btnSaveWorklog">保存日志</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 当天计划 -->
+        <div class="card" id="dayPlansCard">
+          <div class="card-header">
+            <h3>📋 当天计划</h3>
+            <button class="btn btn-small btn-secondary" id="btnAddPlan">＋ 新建</button>
+          </div>
+          <div class="card-body">
+            <div class="day-plan-list" id="dayPlanList">
+              <p class="empty-hint">当天没有计划</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 近期计划 -->
+        <div class="card" id="upcomingCard">
+          <div class="card-header">
+            <h3>🔜 近期计划</h3>
+          </div>
+          <div class="card-body">
+            <div class="upcoming-list" id="upcomingList">
+              <!-- JS 动态渲染 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 全部计划（全宽） -->
+        <div class="card card-full" id="allPlansCard">
+          <div class="card-header">
+            <h3>📋 全部计划</h3>
+            <button class="btn btn-small btn-secondary" id="btnAddPlanAll">＋ 新建</button>
+          </div>
+          <div class="card-body" id="allPlansBody">
+            <div class="plan-list" id="planList">
+              <p class="empty-hint">暂无计划</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /cards-grid -->
     </main>
+  </div>
+
+  <!-- 模块管理抽屉 -->
+  <div class="widget-drawer" id="widgetDrawer">
+    <div class="widget-drawer-header">
+      <h4>📦 模块管理</h4>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-small btn-secondary" id="btnResetLayout">恢复默认</button>
+        <button class="btn btn-small btn-primary" id="btnFinishEdit">✓ 完成</button>
+      </div>
+    </div>
+    <div id="widgetDrawerList"></div>
   </div>
 
   <!-- 遮罩 -->
@@ -121,44 +207,50 @@
     </div>
   </div>
 
-  <!-- 计划详情弹窗（移动端） -->
-  <div class="modal" id="planDetailModal">
+  <!-- 新建/编辑计划弹窗 -->
+  <div class="modal" id="planModal">
     <div class="modal-header">
-      <h3 id="detailTitle">计划详情</h3>
-      <button class="btn-icon modal-close" id="detailClose">✕</button>
-    </div>
-    <div class="modal-body" id="detailBody">
-      <!-- JS 动态填充 -->
-    </div>
-  </div>
-
-  <!-- 日期详情弹窗（修改单日班型） -->
-  <div class="modal" id="dateDetailModal">
-    <div class="modal-header">
-      <h3 id="dateDetailTitle">日期详情</h3>
-      <button class="btn-icon modal-close" id="dateDetailClose">✕</button>
+      <h3 id="planModalTitle">新建计划</h3>
+      <button class="btn-icon modal-close" id="planModalClose">✕</button>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="planId">
       <div class="form-group">
-        <label>当前班型</label>
-        <p id="currentShiftInfo" style="font-size:1.1rem;font-weight:600;"></p>
+        <label for="planTitle">计划标题 *</label>
+        <input type="text" id="planTitle" placeholder="例如：提交工作报告">
       </div>
       <div class="form-group">
-        <label for="shiftTypeSelect">修改班型</label>
-        <select id="shiftTypeSelect">
-          <option value="">恢复自动推算</option>
-          <option value="day">🌞 白班</option>
-          <option value="night">🌙 夜班</option>
-          <option value="trip">✈️ 出差</option>
-          <option value="rest">🏠 休息</option>
-          <option value="holiday">🎉 节假日</option>
+        <label for="planDesc">备注</label>
+        <textarea id="planDesc" rows="2" placeholder="可选"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="planDeadline">截止时间 *</label>
+        <input type="datetime-local" id="planDeadline">
+      </div>
+      <div class="form-group">
+        <label for="planReminder">提前提醒</label>
+        <select id="planReminder">
+          <option value="3">3 分钟</option>
+          <option value="5">5 分钟</option>
+          <option value="10">10 分钟</option>
+          <option value="15">15 分钟</option>
+          <option value="20">20 分钟</option>
+          <option value="30" selected>30 分钟</option>
+          <option value="45">45 分钟</option>
+          <option value="60">1 小时</option>
+          <option value="120">2 小时</option>
+          <option value="180">3 小时</option>
+          <option value="360">6 小时</option>
+          <option value="720">12 小时</option>
+          <option value="1440">1 天</option>
+          <option value="2880">2 天</option>
+          <option value="4320">3 天</option>
+          <option value="10080">1 周</option>
         </select>
       </div>
-      <button class="btn btn-primary" id="btnSaveShift" style="width:100%;">保存</button>
-      <button class="btn btn-secondary" id="btnDeleteOverride" style="width:100%;margin-top:6px;">恢复自动推算</button>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--color-border);">
-        <h4 style="margin-bottom:6px;">📋 当天计划</h4>
-        <div id="datePlansInModal"></div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="btnSavePlan">保存</button>
+        <button class="btn btn-secondary" id="btnCancelPlan">取消</button>
       </div>
     </div>
   </div>

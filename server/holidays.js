@@ -21,8 +21,6 @@ const HOLIDAYS = {
   '2026-02-18': { type: 'holiday', name: '春节' },
   '2026-02-19': { type: 'holiday', name: '春节' },
   '2026-02-20': { type: 'holiday', name: '春节' },
-  '2026-02-07': { type: 'day', name: '调休上班' },
-  '2026-02-08': { type: 'day', name: '调休上班' },
 
   // 清明节
   '2026-04-04': { type: 'holiday', name: '清明' },
@@ -35,8 +33,6 @@ const HOLIDAYS = {
   '2026-05-03': { type: 'holiday', name: '劳动节' },
   '2026-05-04': { type: 'holiday', name: '劳动节' },
   '2026-05-05': { type: 'holiday', name: '劳动节' },
-  '2026-04-26': { type: 'day', name: '调休上班' },
-  '2026-05-09': { type: 'day', name: '调休上班' },
 
   // 端午节
   '2026-06-19': { type: 'holiday', name: '端午' },
@@ -56,8 +52,6 @@ const HOLIDAYS = {
   '2026-10-05': { type: 'holiday', name: '国庆' },
   '2026-10-06': { type: 'holiday', name: '国庆' },
   '2026-10-07': { type: 'holiday', name: '国庆' },
-  '2026-09-20': { type: 'day', name: '调休上班' },
-  '2026-10-10': { type: 'day', name: '调休上班' },
 
   // === 2027 ===
   '2027-01-01': { type: 'holiday', name: '元旦' },
@@ -72,8 +66,6 @@ const HOLIDAYS = {
   '2027-02-08': { type: 'holiday', name: '春节' },
   '2027-02-09': { type: 'holiday', name: '春节' },
   '2027-02-10': { type: 'holiday', name: '春节' },
-  '2027-01-30': { type: 'day', name: '调休上班' },
-  '2027-01-31': { type: 'day', name: '调休上班' },
 
   '2027-04-04': { type: 'holiday', name: '清明' },
   '2027-04-05': { type: 'holiday', name: '清明' },
@@ -84,8 +76,6 @@ const HOLIDAYS = {
   '2027-05-03': { type: 'holiday', name: '劳动节' },
   '2027-05-04': { type: 'holiday', name: '劳动节' },
   '2027-05-05': { type: 'holiday', name: '劳动节' },
-  '2027-04-25': { type: 'day', name: '调休上班' },
-  '2027-05-08': { type: 'day', name: '调休上班' },
 
   '2027-06-09': { type: 'holiday', name: '端午' },
   '2027-06-10': { type: 'holiday', name: '端午' },
@@ -102,8 +92,6 @@ const HOLIDAYS = {
   '2027-10-05': { type: 'holiday', name: '国庆' },
   '2027-10-06': { type: 'holiday', name: '国庆' },
   '2027-10-07': { type: 'holiday', name: '国庆' },
-  '2027-09-26': { type: 'day', name: '调休上班' },
-  '2027-10-09': { type: 'day', name: '调休上班' },
 };
 
 function getHolidays(userOverrides = {}) {

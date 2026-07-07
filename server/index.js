@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const db = require('./db');
 const { getShiftType, getShiftTypesInRange, SHIFT_TYPES } = require('./shift');
 const { checkAndNotify } = require('./notify');
+const { getLunarInfo } = require('./lunar');
 
 const app = express();
 const PORT = process.env.PORT || 3456;
@@ -22,8 +23,8 @@ app.get('/api/config', (req, res) => {
 app.put('/api/config', (req, res) => {
   const { reference_start_date, feishu_webhook_url } = req.body;
 
+  // Validate all inputs before saving any
   if (reference_start_date !== undefined) {
-    // Validate: must be a Monday
     const d = new Date(reference_start_date + 'T00:00:00');
     if (isNaN(d.getTime())) {
       return res.status(400).json({ error: '无效的日期格式，请使用 YYYY-MM-DD' });
@@ -31,9 +32,18 @@ app.put('/api/config', (req, res) => {
     if (d.getDay() !== 1) {
       return res.status(400).json({ error: '参考起始日必须是周一' });
     }
-    db.setConfig('reference_start_date', reference_start_date);
   }
 
+  if (feishu_webhook_url !== undefined) {
+    if (feishu_webhook_url && !feishu_webhook_url.startsWith('https://open.feishu.cn/')) {
+      return res.status(400).json({ error: '飞书 Webhook URL 格式无效，应以 https://open.feishu.cn/ 开头' });
+    }
+  }
+
+  // All validations passed — save atomically
+  if (reference_start_date !== undefined) {
+    db.setConfig('reference_start_date', reference_start_date);
+  }
   if (feishu_webhook_url !== undefined) {
     db.setConfig('feishu_webhook_url', feishu_webhook_url);
   }
@@ -60,7 +70,7 @@ app.post('/api/plans', (req, res) => {
     title,
     description: description || '',
     deadline,
-    reminder_minutes: reminder_minutes || 30,
+    reminder_minutes: reminder_minutes ?? 30,
   };
 
   const created = db.createPlan(plan);
@@ -110,6 +120,44 @@ app.get('/api/shift-types', (req, res) => {
   res.json(SHIFT_TYPES);
 });
 
+// --- Lunar Calendar ---
+app.get('/api/lunar', (req, res) => {
+  const { date } = req.query;
+  if (!date) {
+    return res.status(400).json({ error: '请提供 date 参数 (YYYY-MM-DD)' });
+  }
+  const lunar = getLunarInfo(date);
+  res.json({ date, lunar });
+});
+
+// --- Layout persistence ---
+app.get('/api/layout', (req, res) => {
+  res.json(db.getLayout());
+});
+
+app.put('/api/layout', (req, res) => {
+  const layout = req.body;
+  if (!layout || typeof layout !== 'object') {
+    return res.status(400).json({ error: 'layout 必须是对象' });
+  }
+  for (const zone of ['right', 'left']) {
+    if (layout[zone] !== undefined) {
+      const z = layout[zone];
+      if (!z || typeof z !== 'object') {
+        return res.status(400).json({ error: `layout.${zone} 必须是对象` });
+      }
+      if (z.order !== undefined && !Array.isArray(z.order)) {
+        return res.status(400).json({ error: `layout.${zone}.order 必须是数组` });
+      }
+      if (z.hidden !== undefined && !Array.isArray(z.hidden)) {
+        return res.status(400).json({ error: `layout.${zone}.hidden 必须是数组` });
+      }
+    }
+  }
+  db.saveLayout(layout);
+  res.json({ success: true });
+});
+
 // --- Overrides API ---
 
 app.get('/api/overrides', (req, res) => {
@@ -135,6 +183,35 @@ app.delete('/api/overrides', (req, res) => {
   }
   const result = db.deleteOverride(date);
   res.json(result);
+});
+
+// --- Worklog API ---
+
+app.get('/api/worklogs', (req, res) => {
+  const { date } = req.query;
+  if (!date) {
+    return res.status(400).json({ error: '请提供 date 参数 (YYYY-MM-DD)' });
+  }
+  const log = db.getWorklog(date);
+  res.json({ date, log });
+});
+
+app.get('/api/worklogs/range', (req, res) => {
+  const { start, end } = req.query;
+  if (!start || !end) {
+    return res.status(400).json({ error: '请提供 start 和 end 参数 (YYYY-MM-DD)' });
+  }
+  const logs = db.getWorklogsInRange(start, end);
+  res.json(logs);
+});
+
+app.put('/api/worklogs', (req, res) => {
+  const { date, items } = req.body;
+  if (!date) {
+    return res.status(400).json({ error: '请提供 date' });
+  }
+  const result = db.saveWorklog(date, items || []);
+  res.json({ date, log: result });
 });
 
 // --- Test notification endpoint ---
